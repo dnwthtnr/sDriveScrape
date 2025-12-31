@@ -9,7 +9,8 @@
 #include <vector>
 #include <filesystem>
 #include <iterator>
-#include <map>
+#include <future>
+#include <iostream>
 #include <__msvc_filebuf.hpp>
 
 namespace fs = std::filesystem;
@@ -45,7 +46,19 @@ void populateSubstrings();
 std::string toLower(std::string input);
 
 dirtype::DirType get_directory_type(fs::path filepath, bool peekWeekSubdirs=true);
+
 std::vector<fs::path>* filteredBreadthFirstSearch(std::string rootDirectory, int depth=-1);
+
+fs::path copyFile(fs::path src, fs::path dest, std::function<void(fs::path)> callback);
+
+inline int CopyOperationCount = 0;
+inline int CurrentCopyCount = 0;
+void setCopyOperationCount(int count);
+void logCopyProgress(fs::path path);
+
+
+bool copyFilePathsFromRelativeStart(std::vector<fs::path> *paths, fs::path relativeStartPath, fs::path relativeEndPath);
+
 int main(int argc, char* argv[]);
 
     

@@ -1,6 +1,5 @@
 #include "sDriveScrape.hpp"
 
-#include <iostream>
 
 void populateSubstrings()
 {
@@ -114,19 +113,85 @@ std::vector<fs::path>* filteredBreadthFirstSearch(std::string rootDirectory, int
     return matches;
 };
 
+fs::path copyFile(fs::path src, fs::path dest, std::function<void(fs::path)> callback) {
+    try {
+        fs::path destination_dir = dest.parent_path();
+
+        if (!destination_dir.empty()) {
+            fs::create_directories(destination_dir);
+        }
+        if (is_directory(src)) {
+            
+            fs::copy(src, dest, fs::copy_options::overwrite_existing | fs::copy_options::recursive);
+        }
+        else {
+            fs::copy_file(src, dest, fs::copy_options::overwrite_existing);
+        }
+    } catch (std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return fs::path();
+    }
+    std::future<void> future = std::async(std::launch::async, callback, dest);
+    future.get();
+    return dest;
+}
+
+void setCopyOperationCount(int count) {
+    CopyOperationCount = count;
+};
+void logCopyProgress(fs::path path) {
+    CurrentCopyCount++;
+    std::string str = std::format("Copied {}/{} -- {}", CurrentCopyCount, CopyOperationCount, path.string());
+    std::cout << str << std::endl;
+    if (CurrentCopyCount == CopyOperationCount) {
+        std::cout << "Copy finished!" << std::endl;
+        CurrentCopyCount = 0;
+        CopyOperationCount = 0;
+    }
+}
+
+bool copyFilePathsFromRelativeStart(std::vector<fs::path> *paths, fs::path relativeStartPath, fs::path relativeEndPath) {
+    std::string relativeStartStr = relativeStartPath.string();
+    std::string relativeEndStr = relativeEndPath.string();
+    std::size_t startPos = 0;
+    std::vector<std::shared_future<fs::path>> futures;
+    std::future<fs::path> currentFuture;
+    for (fs::path currentPath : *paths) {
+        std::string newpathstr = currentPath.string();
+        newpathstr.replace(startPos, relativeStartStr.length(), relativeEndStr);
+        fs::path newPath = fs::path(newpathstr);
+        if (!exists(currentPath)) {
+            std::cerr << "New Path: " << newpathstr<< "Or old path:" << currentPath.string() << "Does not exist" << std::endl;
+            continue;
+        }
+        currentFuture = std::async(std::launch::async, copyFile, currentPath, newPath, &logCopyProgress);
+        futures.push_back(currentFuture.share());
+    }
+    int copyCount = static_cast<int>(futures.size());
+    int currentCount = 0;
+    for (std::shared_future<fs::path> future : futures) {
+        std::string str = std::format("Copying {}/{} -- {}", currentCount, copyCount, future.get().string());
+        //std::cout << str << std::endl;
+        currentCount++;
+    }
+    return true;
+}
+
 
 int main(int argc, char* argv[])
 {
+    std::string searchPath = R"(S:\Academics\Courses)";
+    std::string targetPath = R"(S:\Academics\Courses\GAME_310\RESOURCES\dannyBackupFiles)";
     populateSubstrings();
-    std::vector<fs::path>* matches = filteredBreadthFirstSearch(R"(S:\Academics\Courses)");
+    std::vector<fs::path>* matches = filteredBreadthFirstSearch(searchPath);
     printf("%zu", matches->size());
-    auto printResults = [matches] (std::vector<fs::path>* matches){
+    copyFilePathsFromRelativeStart(matches, searchPath, targetPath);
+    /*auto printResults = [matches] (std::vector<fs::path>* matches){
         for (auto m : *matches)
         {
             std::cout << m.string() << std::endl;
         }
-    };
-    printResults(matches);
+    };*/
     return 0;
 };
 
