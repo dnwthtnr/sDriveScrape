@@ -1,20 +1,20 @@
 #include "sDriveScrape.hpp"
 
 
-void populateSubstrings()
+void sDriveScrape::populateSubstrings()
 {
-    outlierSubstring->push_back("_Previous Blocks");
-    courseSubstring->push_back("DAVE_");
-    courseSubstring->push_back("GAME_");
-    
-    termSubstring->push_back("2024");
-    termSubstring->push_back("2025");
-    weekSubstring->push_back("week");
-    studentSubstring->push_back("ruiz");
+    sDriveScrape::outlierSubstring->push_back("_Previous Blocks");
+    sDriveScrape::courseSubstring->push_back("DAVE_");
+    sDriveScrape::courseSubstring->push_back("GAME_");
+
+    sDriveScrape::termSubstring->push_back("2024");
+    sDriveScrape::termSubstring->push_back("2025");
+    sDriveScrape::weekSubstring->push_back("week");
+    sDriveScrape::studentSubstring->push_back("ruiz");
 }
 
 
-std::string toLower(std::string input){
+std::string sDriveScrape::toLower(std::string input){
     std::transform(
         input.begin(),
         input.end(),
@@ -23,13 +23,13 @@ std::string toLower(std::string input){
     return input;
 }
 
-dirtype::DirType get_directory_type(fs::path filepath, bool peekWeekSubdirs){
+dirtype::DirType sDriveScrape::get_directory_type(fs::path filepath, bool peekWeekSubdirs){
     // TODO: big try catch to account for non ansi characters in some file names
     try{
     std::string stem = filepath.stem().string();
     stem = toLower(filepath.stem().string());
     dirtype::DirType resultType = dirtype::null;
-    for (auto const& item : dirTypePredicates){
+    for (auto const& item : sDriveScrape::dirTypePredicates){
         auto dirType = item.first;
         for (std::string str : *item.second){
             str = toLower(str);
@@ -47,7 +47,7 @@ dirtype::DirType get_directory_type(fs::path filepath, bool peekWeekSubdirs){
     dirtype::DirType parentDirType = get_directory_type(filepath.parent_path().string(), false);
     if (parentDirType == dirtype::WeekDir)
     {
-        std::vector<fs::path>* matches = filteredBreadthFirstSearch(filepath.string(), 2);
+        std::vector<fs::path>* matches = sDriveScrape::filteredBreadthFirstSearch(filepath.string(), 2);
         if (matches->size() > 0)
         {
             resultType = dirtype::OutlierDir;
@@ -62,7 +62,7 @@ dirtype::DirType get_directory_type(fs::path filepath, bool peekWeekSubdirs){
     }
 };
 
-std::vector<fs::path>* filteredBreadthFirstSearch(std::string rootDirectory, int depth)
+std::vector<fs::path>* sDriveScrape::filteredBreadthFirstSearch(fs::path rootDirectory, int depth)
 {
     fs::path rootPath = rootDirectory;
     std::vector<fs::path>* matches = new std::vector<fs::path>;
@@ -82,7 +82,7 @@ std::vector<fs::path>* filteredBreadthFirstSearch(std::string rootDirectory, int
         //currentLevelChildCount += std::distance(begin(currentIter), end(currentIter));
         for (fs::path currentDir : currentIter){
             currentLevelChildCount++;
-            dirtype::DirType _dirtype = get_directory_type(currentDir);
+            dirtype::DirType _dirtype = sDriveScrape::get_directory_type(currentDir);
             if (!is_directory(currentDir)){
                 if (_dirtype == dirtype::StudentDir){
                     matches->push_back(currentDir);
@@ -113,7 +113,7 @@ std::vector<fs::path>* filteredBreadthFirstSearch(std::string rootDirectory, int
     return matches;
 };
 
-fs::path copyFile(fs::path src, fs::path dest, std::function<void(fs::path)> callback) {
+fs::path sDriveScrape::copyFile(fs::path src, fs::path dest, std::function<void(fs::path)> callback) {
     try {
         fs::path destination_dir = dest.parent_path();
 
@@ -136,21 +136,21 @@ fs::path copyFile(fs::path src, fs::path dest, std::function<void(fs::path)> cal
     return dest;
 }
 
-void setCopyOperationCount(int count) {
-    CopyOperationCount = count;
+void sDriveScrape::setCopyOperationCount(int count) {
+    sDriveScrape::CopyOperationCount = count;
 };
-void logCopyProgress(fs::path path) {
-    CurrentCopyCount++;
-    std::string str = std::format("Copied {}/{} -- {}", CurrentCopyCount, CopyOperationCount, path.string());
+void sDriveScrape::logCopyProgress(fs::path path) {
+    sDriveScrape::CurrentCopyCount++;
+    std::string str = std::format("Copied {}/{} -- {}", sDriveScrape::CurrentCopyCount, sDriveScrape::CopyOperationCount, path.string());
     std::cout << str << std::endl;
-    if (CurrentCopyCount == CopyOperationCount) {
+    if (sDriveScrape::CurrentCopyCount == sDriveScrape::CopyOperationCount) {
         std::cout << "Copy finished!" << std::endl;
-        CurrentCopyCount = 0;
-        CopyOperationCount = 0;
+        sDriveScrape::CurrentCopyCount = 0;
+        sDriveScrape::CopyOperationCount = 0;
     }
 }
 
-bool copyFilePathsFromRelativeStart(std::vector<fs::path> *paths, fs::path relativeStartPath, fs::path relativeEndPath) {
+bool sDriveScrape::copyFilePathsFromRelativeStart(std::vector<fs::path> *paths, fs::path relativeStartPath, fs::path relativeEndPath) {
     std::string relativeStartStr = relativeStartPath.string();
     std::string relativeEndStr = relativeEndPath.string();
     std::size_t startPos = 0;
@@ -178,20 +178,69 @@ bool copyFilePathsFromRelativeStart(std::vector<fs::path> *paths, fs::path relat
 }
 
 
-int main(int argc, char* argv[])
-{
+SDriveScraperController::SDriveScraperController() = default;
+
+SDriveScraperController::~SDriveScraperController() = default;
+
+void SDriveScraperController::start_async_search(std::shared_ptr<SearchSpecification> spec) {
     std::string searchPath = R"(S:\Academics\Courses)";
     std::string targetPath = R"(S:\Academics\Courses\GAME_310\RESOURCES\dannyBackupFiles)";
-    populateSubstrings();
-    std::vector<fs::path>* matches = filteredBreadthFirstSearch(searchPath);
+    sDriveScrape::populateSubstrings();
+    std::vector<fs::path>* matches = sDriveScrape::filteredBreadthFirstSearch(spec->search_path);
     printf("%zu", matches->size());
-    copyFilePathsFromRelativeStart(matches, searchPath, targetPath);
-    /*auto printResults = [matches] (std::vector<fs::path>* matches){
-        for (auto m : *matches)
-        {
-            std::cout << m.string() << std::endl;
+    sDriveScrape::copyFilePathsFromRelativeStart(matches, spec->search_path, spec->delivery_path);
+}
+
+
+
+
+void SDriveScraperController::testMsg(std::string msg) {
+  qDebug() << msg;
+};
+
+
+void message_handler(QtMsgType type, const QMessageLogContext &, const QString & msg)
+{
+    QString txt;
+    if(SDriveScraperWindow::output_box == 0){
+        switch (type) {
+        case QtDebugMsg:
+            txt = QString("Debug: %1").arg(msg);
+            break;
+        case QtWarningMsg:
+            txt = QString("Warning: %1").arg(msg);
+            break;
+        case QtCriticalMsg:
+            txt = QString("Critical: %1").arg(msg);
+            break;
+        case QtFatalMsg:
+            txt = QString("Fatal: %1").arg(msg);
+            abort();
         }
-    };*/
+    }
+    if(SDriveScraperWindow::output_box != 0)
+        SDriveScraperWindow::output_box->append(txt);
+    // QFile outFile("log");
+    // outFile.open(QIODevice::WriteOnly | QIODevice::Append);
+    // QTextStream ts(&outFile);
+    // ts << txt << QString(std::endl);
+    
+}
+int main(int argc, char* argv[])
+{
+    
+    //qInstallMessageHandler(message_handler);
+    //QApplication app(argc, argv);
+    // auto* win = new SDriveScraperWindow();
+    // SDriveScraperController *controller;
+    // controller = new SDriveScraperController();
+    // //
+    // //
+    // // win->show();
+    // // std::cout <<"test" << std::endl;
+    // // SDriveScraperWindow::output_box->append("test");
+    // // controller->testMsg("hello world");
+    //return app.exec();
     return 0;
 };
 
