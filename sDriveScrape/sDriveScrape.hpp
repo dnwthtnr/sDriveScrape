@@ -55,7 +55,7 @@ namespace sDriveScrape {
 
     dirtype::DirType get_directory_type(fs::path filepath, bool peekWeekSubdirs=true);
 
-    std::vector<fs::path>* filteredBreadthFirstSearch(fs::path rootDirectory, int depth=-1);
+    std::vector<fs::path>* filteredBreadthFirstSearch(const fs::path &rootDirectory, int depth=-1);
 
     fs::path copyFile(fs::path src, fs::path dest, std::function<void(fs::path)> callback);
 

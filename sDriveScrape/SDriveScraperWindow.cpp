@@ -1,9 +1,5 @@
 #include "SDriveScraperWindow.h"
 
-#include <QtWidgets/qboxlayout.h>
-#include <QtWidgets/qlabel.h>
-#include <QtWidgets/qlineedit.h>
-#include <QtWidgets/qtextedit.h>
 
 
 
@@ -12,7 +8,7 @@ SDriveScraperWindow::SDriveScraperWindow() {
     QWidget* centralWidget = SDriveScraperWindow::build();
     this->setCentralWidget(centralWidget);
     this->show();
-}
+};
 
 SDriveScraperWindow::~SDriveScraperWindow() {
 }
@@ -29,8 +25,8 @@ QWidget* SDriveScraperWindow::build() {
     return widget;
 }
 
-LabeledTextbox* SDriveScraperWindow::build_labeled_line_edit(QString name) {
-    auto lineedit = new LabeledTextbox(name);
+LabeledLineEdit* SDriveScraperWindow::build_labeled_line_edit(QString& name) {
+    auto lineedit = new LabeledLineEdit(name);
     return lineedit;
 }
 
@@ -63,29 +59,51 @@ void SDriveScraperWindow::search_completed() {
 void SDriveScraperWindow::copy_completed() {
 }
 
-
-void LabeledTextbox::build(const QString& name) {
+template<typename WIDGET_TYPE>
+void LabeledWidget<WIDGET_TYPE>::build(const QString& name) {
     auto layout = new QHBoxLayout();
     this->setLayout(layout);
     
-    label = new QLabel();
+    this->widget = new WIDGET_TYPE();
     label->setText(name);
-    linedit = new QLineEdit();
 
-    this->layout()->addWidget(label);
-    this->layout()->addWidget(linedit);
+    this->layout()->addWidget(label, Qt::AlignLeft);
+    this->layout()->addWidget(widget);
+}
 
-    connect(linedit, &QLineEdit::textChanged, this, &LabeledTextbox::lineEdit_textChanged);
+template<typename WIDGET_TYPE>
+QString LabeledWidget<WIDGET_TYPE>::name() const {
+    return this->label->text();
 }
-void LabeledTextbox::lineEdit_textChanged(const QString& text) {
-emit this->textEdited(text);
-}
-QString LabeledTextbox::text() const {
-    return this->linedit->text();
+
+
+template<QFileDialog::FileMode FILE_MODE>
+QString FileSelector<FILE_MODE>::getSelectedFile() {
+    return currentFileLine->text();
 };
 
-QString LabeledTextbox::name() const {
-return this->label->text();
+template<QFileDialog::FileMode FILE_MODE>
+void FileSelector<FILE_MODE>::open_file_selection() {
+    this->fileDialog->setFileMode(FILE_MODE);
+    fileDialog->setDirectory(this->getSelectedFile());
+    fileDialog->open();
+}
+
+template<QFileDialog::FileMode FILE_MODE>
+void FileSelector<FILE_MODE>::build() {
+    currentFileLine = new QLineEdit();
+    currentFileLine->setReadOnly(true);
+    selectButton = new QToolButton();
+
+    setLayout(new QHBoxLayout());
+    this->layout()->addWidget(currentFileLine);
+    this->layout()->addWidget(selectButton, Qt::AlignRight);
+}
+
+template<QFileDialog::FileMode FILE_MODE>
+void FileSelector<FILE_MODE>::handleDialogAccepted(DialogSelectionType& selection) {
+    currentFileLine->setText(selection);
+    emit file_selected(selection);
 }
 
 

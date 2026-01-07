@@ -15,11 +15,10 @@ void sDriveScrape::populateSubstrings()
 
 
 std::string sDriveScrape::toLower(std::string input){
-    std::transform(
-        input.begin(),
-        input.end(),
-        input.begin(),
-        [](char c){return std::tolower(c);});
+    std::ranges::transform(input
+                           ,
+                           input.begin(),
+                           [](char c){return std::tolower(c);});
     return input;
 }
 
@@ -62,7 +61,7 @@ dirtype::DirType sDriveScrape::get_directory_type(fs::path filepath, bool peekWe
     }
 };
 
-std::vector<fs::path>* sDriveScrape::filteredBreadthFirstSearch(fs::path rootDirectory, int depth)
+std::vector<fs::path>* sDriveScrape::filteredBreadthFirstSearch(const fs::path &rootDirectory, int depth)
 {
     fs::path rootPath = rootDirectory;
     std::vector<fs::path>* matches = new std::vector<fs::path>;
@@ -189,6 +188,7 @@ void SDriveScraperController::start_async_search(std::shared_ptr<SearchSpecifica
     std::vector<fs::path>* matches = sDriveScrape::filteredBreadthFirstSearch(spec->search_path);
     printf("%zu", matches->size());
     sDriveScrape::copyFilePathsFromRelativeStart(matches, spec->search_path, spec->delivery_path);
+    free(matches);
 }
 
 
@@ -228,20 +228,17 @@ void message_handler(QtMsgType type, const QMessageLogContext &, const QString &
 }
 int main(int argc, char* argv[])
 {
-    
-    //qInstallMessageHandler(message_handler);
-    //QApplication app(argc, argv);
-    // auto* win = new SDriveScraperWindow();
-    // SDriveScraperController *controller;
-    // controller = new SDriveScraperController();
-    // //
-    // //
-    // // win->show();
-    // // std::cout <<"test" << std::endl;
-    // // SDriveScraperWindow::output_box->append("test");
-    // // controller->testMsg("hello world");
-    //return app.exec();
-    return 0;
+    printf("hello world\n");
+    qInstallMessageHandler(message_handler);
+    QApplication app(argc, argv);
+    const auto win = new SDriveScraperWindow();
+    const auto controller = std::make_unique<SDriveScraperController>();
+
+
+    win->show();
+    std::cout <<"test" << std::endl;
+    controller->testMsg("hello world");
+    return app.exec();
 };
 
     
