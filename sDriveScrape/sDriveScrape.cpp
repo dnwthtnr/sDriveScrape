@@ -181,7 +181,7 @@ SDriveScraperController::SDriveScraperController() = default;
 
 SDriveScraperController::~SDriveScraperController() = default;
 
-void SDriveScraperController::start_async_search(std::shared_ptr<SearchSpecification> spec) {
+void SDriveScraperController::start_async_search(std::shared_ptr<SearchSpec::SearchSpecification> spec) {
     std::string searchPath = R"(S:\Academics\Courses)";
     std::string targetPath = R"(S:\Academics\Courses\GAME_310\RESOURCES\dannyBackupFiles)";
     sDriveScrape::populateSubstrings();
@@ -196,6 +196,21 @@ void SDriveScraperController::start_async_search(std::shared_ptr<SearchSpecifica
 
 void SDriveScraperController::testMsg(std::string msg) {
   qDebug() << msg;
+}
+
+std::map<std::string, SearchSpec::StructTypeVariant> SDriveScraperController::getDefaultStudentSearchSpec() {
+    std::shared_ptr<SearchSpec::SearchSpecification> default_search_spec = SearchSpec::build_search_specification(
+        fs::path(R"(S:\Academics\Courses)"),
+        fs::path(R"(Desktop\DeliveryDir)"),
+        std::vector<std::string>({"ruiz"}),
+        std::vector<std::string>({"week"}),
+        std::vector<std::string>({"2025", "2024"}),
+        std::vector<std::string>({"DAVE_", "GAME_"}),
+        std::vector<std::string>({"_Previous Blocks"}),
+        false,
+        3
+        );
+    return SearchSpec::asVariantTypeMap(*default_search_spec);
 };
 
 

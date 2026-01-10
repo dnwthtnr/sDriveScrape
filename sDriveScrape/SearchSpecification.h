@@ -11,6 +11,7 @@
 namespace fs = std::filesystem;
 namespace SearchSpec{
     using StructTypeVariant = std::variant<fs::path,std::vector<std::string>,bool,int>;
+    using NiceNameVariantTypeMap = std::map<std::string, StructTypeVariant>;
 
     struct SearchSpecification {
         fs::path search_path;
@@ -37,6 +38,7 @@ namespace SearchSpec{
         int investigatory_search_depth
         );
 
-    std::map<std::string, StructTypeVariant> asVariantMap(SearchSpec::SearchSpecification spec);
+    NiceNameVariantTypeMap asVariantTypeMap(SearchSpecification spec);
+    SearchSpecification fromVariantTypeMap(NiceNameVariantTypeMap type_map);
 
 }

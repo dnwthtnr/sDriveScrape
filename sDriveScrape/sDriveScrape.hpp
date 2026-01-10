@@ -75,17 +75,19 @@ public:
     ~SDriveScraperController() override;
     void testMsg(std::string msg);
 
+    static std::map<std::string, SearchSpec::StructTypeVariant> getDefaultStudentSearchSpec();
+
     signals:
     void progress_updated(int current, int total);
     void search_completed();
     void copy_completed();
 
     public slots:
-    static void start_async_search(std::shared_ptr<SearchSpecification> spec);
+    static void start_async_search(std::shared_ptr<SearchSpec::SearchSpecification> spec);
 
     
 private:
-    std::shared_ptr<SearchSpecification> search_spec_;
+    std::shared_ptr<SearchSpec::SearchSpecification> search_spec_;
     
 };
 
